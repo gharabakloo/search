@@ -3,12 +3,13 @@ package mysql
 import (
 	"context"
 	"fmt"
-	"gharabakloo/search/internal/entity"
 	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+
+	"gharabakloo/search/internal/entity"
 )
 
 // TestSearchWithoutError
