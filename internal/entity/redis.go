@@ -20,7 +20,7 @@ type Range struct {
 }
 
 func (r Range) Diff() int {
-	return int(r.End - r.Start)
+	return int(r.End-r.Start) + 1
 }
 
 func NewRange(from, to uint64) Range {

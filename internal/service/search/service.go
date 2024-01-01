@@ -2,10 +2,7 @@ package search
 
 import (
 	"context"
-	"errors"
 	"strings"
-
-	"github.com/redis/go-redis/v9"
 
 	"gharabakloo/search/internal/entity"
 	"gharabakloo/search/internal/repository/cache"
@@ -30,12 +27,12 @@ func (s *Service) Search(ctx context.Context, key string, page entity.Page) (*en
 	pagination := page.Parse()
 	cacheRange := entity.NewRange(pagination.GetFrom(), pagination.GetTo())
 	booksPages, err := s.cache.Get(ctx, key, cacheRange)
-	if err != nil && !errors.Is(err, redis.Nil) {
+	if err != nil {
 		return nil, myerr.Errorf(err)
 	}
 
 	// key doesn't exist in cache
-	if err != nil {
+	if len(booksPages) == 0 {
 		arrBooks, err := s.searchAndCacheRange(ctx, key, cacheRange)
 		if err != nil {
 			return nil, myerr.Errorf(err)
@@ -73,6 +70,10 @@ func (s *Service) searchAndCacheRange(ctx context.Context, key string, r entity.
 			return nil, myerr.Errorf(err)
 		}
 
+		if len(books.Books) == 0 {
+			break
+		}
+
 		arrBooks = append(arrBooks, books.Books...)
 	}
 	return arrBooks, nil
@@ -82,6 +83,10 @@ func (s *Service) searchAndCache(ctx context.Context, key string, p entity.Pagin
 	books, err := s.db.Search(ctx, key, p)
 	if err != nil {
 		return nil, myerr.Errorf(err)
+	}
+
+	if len(books.Books) == 0 {
+		return books, nil
 	}
 
 	if err = s.cache.Add(ctx, key, books); err != nil {
@@ -110,6 +115,10 @@ func (s *Service) searchAndCachePartial(ctx context.Context, booksPages []*entit
 		books, err := s.searchAndCache(ctx, key, dbPagination)
 		if err != nil {
 			return nil, myerr.Errorf(err)
+		}
+
+		if len(books.Books) == 0 {
+			break
 		}
 
 		arrBooks = append(arrBooks, books.Books...)

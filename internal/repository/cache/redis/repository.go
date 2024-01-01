@@ -32,19 +32,19 @@ func (r *Repository) Add(ctx context.Context, key string, books *entity.Books) e
 }
 
 func (r *Repository) Get(ctx context.Context, key string, cacheRange entity.Range) ([]*entity.Books, error) {
-	result, err := r.client.ZRange(ctx, key, cacheRange.Start, cacheRange.End).Result()
+	result, err := r.client.ZRange(ctx, key, cacheRange.Start-1, cacheRange.End).Result()
 	if err != nil {
 		return nil, myerr.Errorf(err)
 	}
 
 	booksPages := make([]*entity.Books, len(result))
-	for _, data := range result {
+	for i, data := range result {
 		books := new(entity.Books)
 		if err = json.Unmarshal([]byte(data), books); err != nil {
 			return nil, myerr.Errorf(err)
 		}
 
-		booksPages = append(booksPages, books)
+		booksPages[i] = books
 	}
 	return booksPages, nil
 }
