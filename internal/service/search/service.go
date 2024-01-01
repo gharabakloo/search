@@ -22,6 +22,18 @@ func New(db db.Repository, cache cache.Repository) *Service {
 	}
 }
 
+// Search implement search key from database and cache.
+// First, it searches key in cache and if it completely exists in cache,
+// return response, but if not exist in cache, or it exists partially in cache,
+// it queries to database for fetch complete result and save response to cache
+// and send it to client.
+//
+// For cache result in redis, I use from sorted set in redis.
+// In such a way that I keep a sorted set in Redis for each searched key.
+// For handling pagination in cache, I consider a constant number for page size (for example 100)
+// and save each page as a member with page number in sorted set.
+// After than for any request with any pagination, first compute cache pagination,
+// and then fetch data from cache.
 func (s *Service) Search(ctx context.Context, key string, page entity.Page) (*entity.Books, error) {
 	key = strings.ToLower(key)
 	pagination := page.Parse()
