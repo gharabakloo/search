@@ -27,8 +27,8 @@ test-base: ## Run base of test
 	@ test -e $(TPARSE) || $(TPARSE_DOWNLOAD)
 	@ $(TPARSE) --version
 
-.PHONY: test-local
-test-local:test-base ## Run test
+.PHONY: test
+test:test-base ## Run test
 	@ $(EXPORT_ENV) && $(GO) test -timeout 1000s -short ./internal/... -json -cover | $(TPARSE) -all -smallscreen
 
 .PHONY: build
